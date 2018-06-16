@@ -297,6 +297,15 @@ func GetLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string, roll
    return singletonInstance
 }
 
+func GetLevelByName(logName string) LogLevel {
+   for i, v := range LogLevelName {
+      if strings.EqualFold(v, logName) {
+         return LogLevel(i)
+      }
+   }
+   return 0
+}
+
 //------------------------------------------------------------------------------
 
 func fileSize(path string) int64 {
