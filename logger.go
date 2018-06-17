@@ -180,7 +180,7 @@ func (l *logTargetFileDaily) Append(msg string) {
       os.Remove(logPath)
    }
 
-   // although Open/Close foreach log decreases performance but
+   // although Open/Close for each log decreases performance but
    // I want to save to disk when append is performed
    f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
    if err != nil {
