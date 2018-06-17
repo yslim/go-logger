@@ -99,7 +99,7 @@ type logTargetConsole struct {
    logTarget
 }
 
-func newConsole(lvl LogLevel) *logTargetConsole {
+func NewConsole(lvl LogLevel) *logTargetConsole {
    return &logTargetConsole{logTarget{Level: lvl}}
 }
 
@@ -180,6 +180,8 @@ func (l *logTargetFileDaily) Append(msg string) {
       os.Remove(logPath)
    }
 
+   // although Open/Close foreach log decreases performance but
+   // I want to save to disk when append is performed
    f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
    if err != nil {
       fmt.Printf("[ logTargetFileDaily:Append() ] file(\"%s\") open failed, error=%v",
@@ -197,8 +199,13 @@ type Logger struct {
    isReady    bool
 }
 
-func (l *Logger) addTarget(target iLogTarget) {
+func NewLogger() *Logger {
+   return &Logger{[]iLogTarget{}, false}
+}
+
+func (l *Logger) AddTarget(target iLogTarget) {
    l.logTargets = append(l.logTargets, target)
+   l.isReady = true
 }
 
 func (l *Logger) IsEnabled(lvl LogLevel) bool {
@@ -239,7 +246,7 @@ func (l *Logger) logFormat(lvl LogLevel, calldepth int, msg string) {
 
    year, month, day := now.Date()
    // Time and LogLevel
-   sb.WriteString(fmt.Sprintf("[%04d-%02d-%02d %02d:%02d:%02d] %-5s ", year, int(month), day,
+   sb.WriteString(fmt.Sprintf("[%04d-%02d-%02d %02d:%02d:%02d] %-14s ", year, int(month), day,
       now.Hour(), now.Minute(), now.Second(), ColoredLogLevelName[lvl]))
    // Mesg
    sb.WriteString(msg)
@@ -256,8 +263,7 @@ func (l *Logger) logFormat(lvl LogLevel, calldepth int, msg string) {
 
 func (l *Logger) log (lvl LogLevel, msg string)  {
    if !l.isReady {
-      fmt.Errorf("[ Logger ] log path is not set.\n")
-      return
+      fmt.Println("[ Logger ] log path is not set.")
    }
 
    for _, v := range l.logTargets {
@@ -273,7 +279,15 @@ func (l *Logger) log (lvl LogLevel, msg string)  {
 var singletonInstance *Logger = nil
 var mutex sync.Mutex
 
-func GetLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string, rollType RollType) *Logger {
+func GetLogger() *Logger {
+   if singletonInstance == nil {
+      fmt.Println("[ GetLoggerInstance ] Logger is not created, use InitLogger...")
+      os.Exit(1)
+   }
+   return singletonInstance
+}
+
+func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string, rollType RollType) *Logger {
    mutex.Lock()
    defer mutex.Unlock()
 
@@ -281,15 +295,16 @@ func GetLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string, roll
       return singletonInstance
    }
 
-   singletonInstance = new(Logger)
+   singletonInstance = NewLogger()
 
    // add Console
-   singletonInstance.addTarget(newConsole(lvl))
+   singletonInstance.AddTarget(NewConsole(lvl))
+
    // add FileLog
    if rollType == ROLL_DAILY {
-      singletonInstance.addTarget(NewLogTargetFileDaily(lvl, logPath))
+      singletonInstance.AddTarget(NewLogTargetFileDaily(lvl, logPath))
    } else {
-      singletonInstance.addTarget(NewLogTargetFileBySize(lvl, limitSize, numFiles, logPath))
+      singletonInstance.AddTarget(NewLogTargetFileBySize(lvl, limitSize, numFiles, logPath))
    }
 
    singletonInstance.isReady = true
