@@ -33,7 +33,7 @@ func loggerTest(t *testing.T) {
    log.Error("[ Test ] error message = %v", "\"Hello Logger\"")
 
    // global instance
-   glog := logger.InitLogger(logger.ALL, 10, 10, "/tmp/message", logger.ROLL_SIZE, true)
+   glog := logger.InitLogger(logger.ALL, 10, 10, "/tmp/message", logger.ROLL_SIZE, true, true)
    glog2 := logger.GetLogger();
    assert.Equal(t, glog, glog2)  // glog, glog2 are same pointer
    assert.NotEqual(t, glog, log) // glog and log are different
@@ -46,15 +46,23 @@ func loggerTest(t *testing.T) {
 }
 
 func BenchmarkLogger(b *testing.B) {
-   b.Run("yslim.Logger", func(b *testing.B) {
+   b.Run("yslim.Logger.Parallel", func(b *testing.B) {
       log := logger.InitLogger(logger.ALL, 1024*1024*10, 10, "/Volumes/MGTEC/Torrent/message",
-         logger.ROLL_SIZE, true)
+         logger.ROLL_SIZE, true, true)
       b.ResetTimer()
       b.RunParallel(func(pb *testing.PB) {
          for pb.Next() {
-            log.Error(getMessage())
+            log.Info(getMessage())
          }
       })
+   })
+   b.Run("yslim.Logger", func(b *testing.B) {
+      log := logger.InitLogger(logger.ALL, 1024*1024*10, 10, "/Volumes/MGTEC/Torrent/message",
+         logger.ROLL_SIZE, true, true)
+      b.ResetTimer()
+      for n := 0; n < b.N; n++ {
+         log.Debug(getMessage())
+      }
    })
 }
 

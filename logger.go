@@ -55,10 +55,11 @@ var (
       "OFF",
    }
 
+   // 31:red, 32:green, 33:yellow, 34:blue, 35:magenta, 36:cyan, 37:gray, 0:reset
    ColoredLogLevelName = []string{
       "ALL",
       "\033[37mTRACE\033[0m",
-      "\033[36mDEBUG\033[0m",
+      "\033[0mDEBUG\033[0m",
       "\033[32mINFO\033[0m",
       "\033[33mWARN\033[0m",
       "\033[31mERROR\033[0m",
@@ -295,12 +296,21 @@ func GetLogger() *Logger {
    return singletonInstance
 }
 
+/**
+ * lvl : log level
+ * limitSize : max log file size limit to rotate, only for RollSize
+ * numFiles: number of log files to be maintained for rotating, only for RollSize
+ * logPath : log path + name (/a/b/c/message)
+ * rollType : log file rolling by Daily or Size
+ * useColoredLogLevelName : colored log level name or not
+ * force : force re-create singletonInstance when already exists
+ */
 func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string,
-        rollType RollType, useColoredLogLevelName bool) *Logger {
+        rollType RollType, useColoredLogLevelName bool, force bool) *Logger {
    mutex.Lock()
    defer mutex.Unlock()
 
-   if singletonInstance != nil {
+   if singletonInstance != nil && !force {
       return singletonInstance
    }
 
