@@ -28,28 +28,6 @@ const (
    OFF
 )
 
-var LogLevelName = []string{
-   "ALL",
-   "TRACE",
-   "DEBUG",
-   "INFO",
-   "WARN",
-   "ERROR",
-   "FATAL",
-   "OFF",
-}
-
-var ColoredLogLevelName = []string{
-   "ALL",
-   "\033[37mTRACE\033[0m",
-   "\033[36mDEBUG\033[0m",
-   "\033[32mINFO\033[0m",
-   "\033[33mWARN\033[0m",
-   "\033[31mERROR\033[0m",
-   "\033[1;31mFATAL\033[0m",
-   "OFF",
-}
-
 const callDepth = 1
 
 const (
@@ -63,6 +41,33 @@ const (
 const (
    ROLL_DAILY RollType = 1 << iota
    ROLL_SIZE
+)
+
+var (
+   LogLevelName = []string{
+      "ALL",
+      "TRACE",
+      "DEBUG",
+      "INFO",
+      "WARN",
+      "ERROR",
+      "FATAL",
+      "OFF",
+   }
+
+   ColoredLogLevelName = []string{
+      "ALL",
+      "\033[37mTRACE\033[0m",
+      "\033[36mDEBUG\033[0m",
+      "\033[32mINFO\033[0m",
+      "\033[33mWARN\033[0m",
+      "\033[31mERROR\033[0m",
+      "\033[1;31mFATAL\033[0m",
+      "OFF",
+   }
+
+   singletonInstance *Logger = nil
+   mutex             sync.Mutex
 )
 
 /*
@@ -282,9 +287,6 @@ func (l *Logger) log(lvl LogLevel, msg string) {
 /*
  * logger Factory
  */
-var singletonInstance *Logger = nil
-var mutex sync.Mutex
-
 func GetLogger() *Logger {
    if singletonInstance == nil {
       fmt.Println("[ GetLoggerInstance ] Logger is not created, use InitLogger...")
