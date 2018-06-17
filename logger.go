@@ -14,7 +14,6 @@ import (
 )
 
 type LogLevel int
-type UNIT int64
 type RollType int
 
 const (
@@ -31,16 +30,8 @@ const (
 const callDepth = 1
 
 const (
-   _       = iota
-   KB UNIT = 1 << (iota * 10)
-   MB
-   GB
-   TB
-)
-
-const (
-   ROLL_DAILY RollType = 1 << iota
-   ROLL_SIZE
+   RollDaily RollType = 1 << iota
+   RollSize
 )
 
 var (
@@ -320,7 +311,7 @@ func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string,
    singletonInstance.AddTarget(NewConsole(lvl))
 
    // add FileLog
-   if rollType == ROLL_DAILY {
+   if rollType == RollDaily {
       singletonInstance.AddTarget(NewLogTargetFileDaily(lvl, logPath))
    } else {
       singletonInstance.AddTarget(NewLogTargetFileBySize(lvl, limitSize, numFiles, logPath))
