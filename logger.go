@@ -41,7 +41,7 @@ var LogLevelName = []string{
 
 var ColoredLogLevelName = []string{
    "ALL",
-   "\033[30mTRACE\033[0m",
+   "\033[37mTRACE\033[0m",
    "\033[36mDEBUG\033[0m",
    "\033[32mINFO\033[0m",
    "\033[33mWARN\033[0m",
@@ -195,12 +195,13 @@ func (l *logTargetFileDaily) Append(msg string) {
  * logger
  */
 type Logger struct {
-   logTargets []iLogTarget
-   isReady    bool
+   logTargets             []iLogTarget
+   isReady                bool
+   useColoredLogLevelName bool
 }
 
-func NewLogger() *Logger {
-   return &Logger{[]iLogTarget{}, false}
+func NewLogger(useColoredLogLevelName bool) *Logger {
+   return &Logger{[]iLogTarget{}, false, useColoredLogLevelName}
 }
 
 func (l *Logger) AddTarget(target iLogTarget) {
@@ -216,27 +217,27 @@ func (l *Logger) IsEnabled(lvl LogLevel) bool {
 }
 
 func (l *Logger) Trace(format string, v ...interface{}) {
-   l.logFormat(TRACE, callDepth + 1, fmt.Sprintf(format, v...))
+   l.logFormat(TRACE, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Debug(format string, v ...interface{}) {
-   l.logFormat(DEBUG, callDepth + 1, fmt.Sprintf(format, v...))
+   l.logFormat(DEBUG, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Info(format string, v ...interface{}) {
-   l.logFormat(INFO, callDepth + 1, fmt.Sprintf(format, v...))
+   l.logFormat(INFO, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Warn(format string, v ...interface{}) {
-   l.logFormat(WARN, callDepth + 1, fmt.Sprintf(format, v...))
+   l.logFormat(WARN, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Error(format string, v ...interface{}) {
-   l.logFormat(ERROR, callDepth + 1, fmt.Sprintf(format, v...))
+   l.logFormat(ERROR, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Fatal(format string, v ...interface{}) {
-   l.logFormat(FATAL, callDepth + 1, fmt.Sprintf(format, v...))
+   l.logFormat(FATAL, callDepth+1, fmt.Sprintf(format, v...))
    os.Exit(1)
 }
 
@@ -246,8 +247,13 @@ func (l *Logger) logFormat(lvl LogLevel, calldepth int, msg string) {
 
    year, month, day := now.Date()
    // Time and LogLevel
-   sb.WriteString(fmt.Sprintf("[%04d-%02d-%02d %02d:%02d:%02d] %-14s ", year, int(month), day,
-      now.Hour(), now.Minute(), now.Second(), ColoredLogLevelName[lvl]))
+   if l.useColoredLogLevelName {
+      sb.WriteString(fmt.Sprintf("[%04d-%02d-%02d %02d:%02d:%02d] %-14s ",
+         year, int(month), day, now.Hour(), now.Minute(), now.Second(), ColoredLogLevelName[lvl]))
+   } else {
+      sb.WriteString(fmt.Sprintf("[%04d-%02d-%02d %02d:%02d:%02d] %-5s ",
+         year, int(month), day, now.Hour(), now.Minute(), now.Second(), LogLevelName[lvl]))
+   }
    // Mesg
    sb.WriteString(msg)
    // File & Line
@@ -258,10 +264,10 @@ func (l *Logger) logFormat(lvl LogLevel, calldepth int, msg string) {
    }
    sb.WriteString(fmt.Sprintf(" [%s:%d]\n", filepath.Base(file), line))
 
-   l.log (lvl, sb.String())
+   l.log(lvl, sb.String())
 }
 
-func (l *Logger) log (lvl LogLevel, msg string)  {
+func (l *Logger) log(lvl LogLevel, msg string) {
    if !l.isReady {
       fmt.Println("[ Logger ] log path is not set.")
    }
@@ -287,7 +293,8 @@ func GetLogger() *Logger {
    return singletonInstance
 }
 
-func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string, rollType RollType) *Logger {
+func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string,
+        rollType RollType, useColoredLogLevelName bool) *Logger {
    mutex.Lock()
    defer mutex.Unlock()
 
@@ -295,7 +302,7 @@ func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string, rol
       return singletonInstance
    }
 
-   singletonInstance = NewLogger()
+   singletonInstance = NewLogger(useColoredLogLevelName)
 
    // add Console
    singletonInstance.AddTarget(NewConsole(lvl))
