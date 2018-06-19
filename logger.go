@@ -101,6 +101,8 @@ func NewConsole(lvl LogLevel) *logTargetConsole {
 }
 
 func (l *logTargetConsole) Append(msg string) {
+   l.Lock()
+   defer l.Unlock()
    fmt.Print(msg)
 }
 

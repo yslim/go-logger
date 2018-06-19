@@ -4,6 +4,7 @@ import (
    "fmt"
    "github.com/stretchr/testify/assert"
    "github.com/yslim/logger"
+   "runtime"
    "testing"
 )
 
@@ -42,19 +43,21 @@ func loggerTest(t *testing.T) {
    glog.Info("[ Test ] info message = %v", "\"Hello Logger\"")
    glog.Warn("[ Test ] warn message = %v", "\"Hello Logger\"")
    glog.Error("[ Test ] error message = %v", "\"Hello Logger\"")
+
+   log.Info ("runtime.GOMAXPROCS(0) = %v", runtime.GOMAXPROCS(0))
 }
 
 func BenchmarkLogger(b *testing.B) {
-   b.Run("yslim.Logger.Parallel", func(b *testing.B) {
-      log := logger.InitLogger(logger.ALL, 1024*1024*10, 10, "/Volumes/MGTEC/Torrent/message",
-         logger.RollSize, true, true)
-      b.ResetTimer()
-      b.RunParallel(func(pb *testing.PB) {
-         for pb.Next() {
-            log.Info(getMessage())
-         }
-      })
-   })
+   // b.Run("yslim.Logger.Parallel", func(b *testing.B) {
+   //    log := logger.InitLogger(logger.ALL, 1024*1024*10, 10, "/Volumes/MGTEC/Torrent/message",
+   //       logger.RollSize, true, true)
+   //    b.ResetTimer()
+   //    b.RunParallel(func(pb *testing.PB) {
+   //       for pb.Next() {
+   //          log.Info(getMessage())
+   //       }
+   //    })
+   // })
    b.Run("yslim.Logger", func(b *testing.B) {
       log := logger.InitLogger(logger.ALL, 1024*1024*10, 10, "/Volumes/MGTEC/Torrent/message",
          logger.RollSize, true, true)
