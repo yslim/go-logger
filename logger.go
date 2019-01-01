@@ -50,11 +50,11 @@ var (
    ColoredLogLevelName = []string{
       "ALL",
       "\033[37mTRACE\033[0m",
-      "\033[0mDEBUG\033[0m",
+      "\033[00mDEBUG\033[0m",
       "\033[32mINFO\033[0m",
       "\033[33mWARN\033[0m",
       "\033[31mERROR\033[0m",
-      "\033[1;31mFATAL\033[0m",
+      "\033[31mFATAL\033[0m",
       "OFF",
    }
 
@@ -134,15 +134,15 @@ func (l *logTargetFileBySize) Append(msg string) {
          l.logPath, err.Error())
       return
    }
-   f.WriteString(msg)
-   f.Close()
+   _, _ = f.WriteString(msg)
+   _ = f.Close()
 }
 
 func (l *logTargetFileBySize) RotateLogFiles() {
    for i := l.numFiles - 2; i > 0; i-- {
-      os.Rename(fmt.Sprint(l.logPath, ".", i), fmt.Sprint(l.logPath, ".", i+1))
+      _ = os.Rename(fmt.Sprint(l.logPath, ".", i), fmt.Sprint(l.logPath, ".", i+1))
    }
-   os.Rename(l.logPath, fmt.Sprint(l.logPath, ".", 1))
+   _ = os.Rename(l.logPath, fmt.Sprint(l.logPath, ".", 1))
 }
 
 /*
@@ -176,7 +176,7 @@ func (l *logTargetFileDaily) Append(msg string) {
 
    // if over one year then remove it
    if now.Sub(fileLastModifiedTime(logPath)).Hours() > 24*360 {
-      os.Remove(logPath)
+      _ = os.Remove(logPath)
    }
 
    // although Open/Close for each log decreases performance but
@@ -186,8 +186,8 @@ func (l *logTargetFileDaily) Append(msg string) {
       fmt.Printf("[ logTargetFileDaily:Append() ] file(\"%s\") open failed, error=%v",
          logPath, err.Error())
    }
-   f.WriteString(msg)
-   f.Close()
+   _, _ = f.WriteString(msg)
+   _ = f.Close()
 }
 
 /*
@@ -333,12 +333,12 @@ func GetLevelByName(logName string) LogLevel {
    return 0
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 func fileSize(path string) int64 {
    f, err := os.Stat(path)
    if err != nil {
-      //fmt.Println(err.Error())
+      // fmt.Println(err.Error())
       return 0
    }
    return f.Size()
