@@ -2,10 +2,11 @@ package logger_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	logger "github.com/yslim/go_logger"
 	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	logger "github.com/yslim/go_logger"
 )
 
 func Test(t *testing.T) {
