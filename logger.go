@@ -56,8 +56,6 @@ var (
 		"OFF",
 	}
 
-	callDepth = 1
-
 	singletonInstance *Logger = nil
 	mutex             sync.Mutex
 )
@@ -185,6 +183,7 @@ func (l *logTargetFileDaily) Append(msg string) {
 	if err != nil {
 		fmt.Printf("[ logTargetFileDaily:Append() ] file(\"%s\") open failed, error=%v",
 			logPath, err.Error())
+		os.Exit(1)
 	}
 	_, _ = f.WriteString(msg)
 	_ = f.Close()
@@ -197,10 +196,11 @@ type Logger struct {
 	logTargets             []iLogTarget
 	isReady                bool
 	useColoredLogLevelName bool
+	callDepth              int
 }
 
 func NewLogger(useColoredLogLevelName bool) *Logger {
-	return &Logger{[]iLogTarget{}, false, useColoredLogLevelName}
+	return &Logger{[]iLogTarget{}, false, useColoredLogLevelName, 2}
 }
 
 func (l *Logger) AddTarget(target iLogTarget) {
@@ -215,28 +215,36 @@ func (l *Logger) IsEnabled(lvl LogLevel) bool {
 	return l.logTargets[0].IsEnabled(lvl)
 }
 
+func (l *Logger) SetCallDepth(callDepth int) {
+	l.callDepth = callDepth
+}
+
+func (l *Logger) GetCallDepth() int {
+	return l.callDepth
+}
+
 func (l *Logger) Trace(format string, v ...interface{}) {
-	l.logFormat(TRACE, callDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(TRACE, l.callDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Debug(format string, v ...interface{}) {
-	l.logFormat(DEBUG, callDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(DEBUG, l.callDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Info(format string, v ...interface{}) {
-	l.logFormat(INFO, callDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(INFO, l.callDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Warn(format string, v ...interface{}) {
-	l.logFormat(WARN, callDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(WARN, l.callDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Error(format string, v ...interface{}) {
-	l.logFormat(ERROR, callDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(ERROR, l.callDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Fatal(format string, v ...interface{}) {
-	l.logFormat(FATAL, callDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(FATAL, l.callDepth, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
@@ -331,14 +339,6 @@ func GetLevelByName(logName string) LogLevel {
 		}
 	}
 	return 0
-}
-
-func SetCallDepth(depth int) {
-	callDepth = depth
-}
-
-func GetCallDepth() int {
-	return callDepth
 }
 
 // ------------------------------------------------------------------------------
