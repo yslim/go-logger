@@ -56,7 +56,7 @@ var (
 		"OFF",
 	}
 
-	CallDepth = 1
+	callDepth = 1
 
 	singletonInstance *Logger = nil
 	mutex             sync.Mutex
@@ -216,27 +216,27 @@ func (l *Logger) IsEnabled(lvl LogLevel) bool {
 }
 
 func (l *Logger) Trace(format string, v ...interface{}) {
-	l.logFormat(TRACE, CallDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(TRACE, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Debug(format string, v ...interface{}) {
-	l.logFormat(DEBUG, CallDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(DEBUG, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Info(format string, v ...interface{}) {
-	l.logFormat(INFO, CallDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(INFO, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Warn(format string, v ...interface{}) {
-	l.logFormat(WARN, CallDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(WARN, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Error(format string, v ...interface{}) {
-	l.logFormat(ERROR, CallDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(ERROR, callDepth+1, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Fatal(format string, v ...interface{}) {
-	l.logFormat(FATAL, CallDepth+1, fmt.Sprintf(format, v...))
+	l.logFormat(FATAL, callDepth+1, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
@@ -331,6 +331,14 @@ func GetLevelByName(logName string) LogLevel {
 		}
 	}
 	return 0
+}
+
+func SetCallDepth(depth int) {
+	callDepth = depth
+}
+
+func GetCallDepth() int {
+	return callDepth
 }
 
 // ------------------------------------------------------------------------------
