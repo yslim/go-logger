@@ -1,4 +1,4 @@
-//
+// Package logger
 // Created by yslim on 2018. 6. 16.
 //
 package logger
@@ -189,9 +189,6 @@ func (l *logTargetFileDaily) Append(msg string) {
 	_ = f.Close()
 }
 
-/*
- * logger
- */
 type Logger struct {
 	logTargets             []iLogTarget
 	isReady                bool
@@ -223,32 +220,57 @@ func (l *Logger) GetCallDepth() int {
 	return l.callDepth
 }
 
-func (l *Logger) Trace(format string, v ...interface{}) {
+func (l *Logger) Trace(v ...interface{}) {
+	l.logFormat(TRACE, l.callDepth, fmt.Sprint(v...))
+}
+
+func (l *Logger) Tracef(format string, v ...interface{}) {
 	l.logFormat(TRACE, l.callDepth, fmt.Sprintf(format, v...))
 }
 
-func (l *Logger) Debug(format string, v ...interface{}) {
+func (l *Logger) Debug(v ...interface{}) {
+	l.logFormat(DEBUG, l.callDepth, fmt.Sprint(v...))
+}
+
+func (l *Logger) Debugf(format string, v ...interface{}) {
 	l.logFormat(DEBUG, l.callDepth, fmt.Sprintf(format, v...))
 }
 
-func (l *Logger) Info(format string, v ...interface{}) {
+func (l *Logger) Info(v ...interface{}) {
+	l.logFormat(INFO, l.callDepth, fmt.Sprint(v...))
+}
+
+func (l *Logger) Infof(format string, v ...interface{}) {
 	l.logFormat(INFO, l.callDepth, fmt.Sprintf(format, v...))
 }
 
-func (l *Logger) Warn(format string, v ...interface{}) {
+func (l *Logger) Warn(v ...interface{}) {
+	l.logFormat(WARN, l.callDepth, fmt.Sprint(v...))
+}
+
+func (l *Logger) Warnf(format string, v ...interface{}) {
 	l.logFormat(WARN, l.callDepth, fmt.Sprintf(format, v...))
 }
 
-func (l *Logger) Error(format string, v ...interface{}) {
+func (l *Logger) Error(v ...interface{}) {
+	l.logFormat(ERROR, l.callDepth, fmt.Sprint(v...))
+}
+
+func (l *Logger) Errorf(format string, v ...interface{}) {
 	l.logFormat(ERROR, l.callDepth, fmt.Sprintf(format, v...))
 }
 
-func (l *Logger) Fatal(format string, v ...interface{}) {
+func (l *Logger) Fatal(v ...interface{}) {
+	l.logFormat(FATAL, l.callDepth, fmt.Sprint(v...))
+	os.Exit(1)
+}
+
+func (l *Logger) Fatalf(format string, v ...interface{}) {
 	l.logFormat(FATAL, l.callDepth, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
-func (l *Logger) logFormat(lvl LogLevel, calldepth int, msg string) {
+func (l *Logger) logFormat(lvl LogLevel, callDepth int, msg string) {
 	var sb strings.Builder
 	now := time.Now()
 
@@ -264,7 +286,7 @@ func (l *Logger) logFormat(lvl LogLevel, calldepth int, msg string) {
 	// Mesg
 	sb.WriteString(msg)
 	// File & Line
-	_, file, line, ok := runtime.Caller(calldepth)
+	_, file, line, ok := runtime.Caller(callDepth)
 	if !ok {
 		file = "???"
 		line = 0
@@ -286,9 +308,7 @@ func (l *Logger) log(lvl LogLevel, msg string) {
 	}
 }
 
-/*
- * logger Factory
- */
+// GetLogger : Logger Factory
 func GetLogger() *Logger {
 	if singletonInstance == nil {
 		fmt.Println("[ GetLoggerInstance ] Logger is not created, use InitLogger...")
@@ -297,15 +317,15 @@ func GetLogger() *Logger {
 	return singletonInstance
 }
 
-/**
- * lvl : log level
- * limitSize : max log file size limit to rotate, only for RollSize
- * numFiles: number of log files to be maintained for rotating, only for RollSize
- * logPath : log path + name (/a/b/c/message)
- * rollType : log file rolling by Daily or Size
- * useColoredLogLevelName : colored log level name or not
- * force : force re-create singletonInstance when already exists
- */
+// InitLogger
+//
+// lvl : log level
+// limitSize : max log file size limit to rotate, only for RollSize
+// numFiles: number of log files to be maintained for rotating, only for RollSize
+// logPath : log path + name (/a/b/c/message)
+// rollType : log file rolling by Daily or Size
+// useColoredLogLevelName : colored log level name or not
+// force : force re-create singletonInstance when already exists
 func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string,
 	rollType RollType, useColoredLogLevelName bool, force bool) *Logger {
 	mutex.Lock()
