@@ -27,11 +27,11 @@ func loggerTest(t *testing.T) {
 	assert.Equal(t, log.IsEnabled(logger.INFO), true, "Log Level")
 	assert.Equal(t, log.IsEnabled(logger.ERROR), true, "Log Level")
 
-	log.Trace("[ Test ] trace message = %v", "\"Hello Logger\"")
-	log.Debug("[ Test ] debug message = %v", "\"Hello Logger\"")
-	log.Info("[ Test ] info message = %v", "\"Hello Logger\"")
-	log.Warn("[ Test ] warn message = %v", "\"Hello Logger\"")
-	log.Error("[ Test ] error message = %v", "\"Hello Logger\"")
+	log.Tracef("[ Test ] trace message = %v", "\"Hello Logger\"")
+	log.Debugf("[ Test ] debug message = %v", "\"Hello Logger\"")
+	log.Infof("[ Test ] info message = %v", "\"Hello Logger\"")
+	log.Warnf("[ Test ] warn message = %v", "\"Hello Logger\"")
+	log.Errorf("[ Test ] error message = %v", "\"Hello Logger\"")
 
 	// global instance
 	glog := logger.InitLogger(logger.ALL, 10, 10, "/tmp/message", logger.RollSize, true, true)
@@ -39,13 +39,13 @@ func loggerTest(t *testing.T) {
 	assert.Equal(t, glog, glog2)  // glog, glog2 are same pointer
 	assert.NotEqual(t, glog, log) // glog and log are different
 
-	glog.Trace("[ Test ] trace message = %v", "\"Hello Logger\"")
-	glog.Debug("[ Test ] debug message = %v", "\"Hello Logger\"")
-	glog.Info("[ Test ] info message = %v", "\"Hello Logger\"")
-	glog.Warn("[ Test ] warn message = %v", "\"Hello Logger\"")
-	glog.Error("[ Test ] error message = %v", "\"Hello Logger\"")
+	glog.Tracef("[ Test ] trace message = %v", "\"Hello Logger\"")
+	glog.Debugf("[ Test ] debug message = %v", "\"Hello Logger\"")
+	glog.Infof("[ Test ] info message = %v", "\"Hello Logger\"")
+	glog.Warnf("[ Test ] warn message = %v", "\"Hello Logger\"")
+	glog.Errorf("[ Test ] error message = %v", "\"Hello Logger\"")
 
-	log.Info("runtime.GOMAXPROCS(0) = %v", runtime.GOMAXPROCS(0))
+	log.Info("runtime.GOMAXPROCS(0) = ", runtime.GOMAXPROCS(0))
 }
 
 func BenchmarkLogger(b *testing.B) {
