@@ -220,6 +220,14 @@ func (l *Logger) GetCallDepth() int {
 	return l.callDepth
 }
 
+func (l *Logger) Print(v ...interface{}) {
+	fmt.Print(v...)
+}
+
+func (l *Logger) Printf(format string, v ...interface{}) {
+	fmt.Printf(format, v...)
+}
+
 func (l *Logger) Trace(v ...interface{}) {
 	l.logFormat(TRACE, l.callDepth, fmt.Sprint(v...))
 }
