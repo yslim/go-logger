@@ -1,4 +1,4 @@
-module github.com/yslim/go_logger
+module github.com/yslim/go-logger
 
 go 1.15
 
