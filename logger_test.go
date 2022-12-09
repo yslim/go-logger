@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	logger "github.com/yslim/go_logger"
+	logger "github.com/yslim/go-logger"
 )
 
 func Test(t *testing.T) {
