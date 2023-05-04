@@ -216,53 +216,77 @@ func (l *Logger) Printf(format string, v ...interface{}) {
 }
 
 func (l *Logger) Trace(v ...interface{}) {
-	l.logFormat(TRACE, l.callDepth, fmt.Sprint(v...))
+	if IsEnabled(TRACE) {
+		l.logFormat(TRACE, l.callDepth, fmt.Sprint(v...))
+	}
 }
 
 func (l *Logger) Tracef(format string, v ...interface{}) {
-	l.logFormat(TRACE, l.callDepth, fmt.Sprintf(format, v...))
+	if IsEnabled(TRACE) {
+		l.logFormat(TRACE, l.callDepth, fmt.Sprintf(format, v...))
+	}
 }
 
 func (l *Logger) Debug(v ...interface{}) {
-	l.logFormat(DEBUG, l.callDepth, fmt.Sprint(v...))
+	if IsEnabled(DEBUG) {
+		l.logFormat(DEBUG, l.callDepth, fmt.Sprint(v...))
+	}
 }
 
 func (l *Logger) Debugf(format string, v ...interface{}) {
-	l.logFormat(DEBUG, l.callDepth, fmt.Sprintf(format, v...))
+	if IsEnabled(DEBUG) {
+		l.logFormat(DEBUG, l.callDepth, fmt.Sprintf(format, v...))
+	}
 }
 
 func (l *Logger) Info(v ...interface{}) {
-	l.logFormat(INFO, l.callDepth, fmt.Sprint(v...))
+	if IsEnabled(INFO) {
+		l.logFormat(INFO, l.callDepth, fmt.Sprint(v...))
+	}
 }
 
 func (l *Logger) Infof(format string, v ...interface{}) {
-	l.logFormat(INFO, l.callDepth, fmt.Sprintf(format, v...))
+	if IsEnabled(INFO) {
+		l.logFormat(INFO, l.callDepth, fmt.Sprintf(format, v...))
+	}
 }
 
 func (l *Logger) Warn(v ...interface{}) {
-	l.logFormat(WARN, l.callDepth, fmt.Sprint(v...))
+	if IsEnabled(WARN) {
+		l.logFormat(WARN, l.callDepth, fmt.Sprint(v...))
+	}
 }
 
 func (l *Logger) Warnf(format string, v ...interface{}) {
-	l.logFormat(WARN, l.callDepth, fmt.Sprintf(format, v...))
+	if IsEnabled(WARN) {
+		l.logFormat(WARN, l.callDepth, fmt.Sprintf(format, v...))
+	}
 }
 
 func (l *Logger) Error(v ...interface{}) {
-	l.logFormat(ERROR, l.callDepth, fmt.Sprint(v...))
+	if IsEnabled(ERROR) {
+		l.logFormat(ERROR, l.callDepth, fmt.Sprint(v...))
+	}
 }
 
 func (l *Logger) Errorf(format string, v ...interface{}) {
-	l.logFormat(ERROR, l.callDepth, fmt.Sprintf(format, v...))
+	if IsEnabled(ERROR) {
+		l.logFormat(ERROR, l.callDepth, fmt.Sprintf(format, v...))
+	}
 }
 
 func (l *Logger) Fatal(v ...interface{}) {
-	l.logFormat(FATAL, l.callDepth, fmt.Sprint(v...))
-	os.Exit(1)
+	if IsEnabled(FATAL) {
+		l.logFormat(FATAL, l.callDepth, fmt.Sprint(v...))
+		os.Exit(1)
+	}
 }
 
 func (l *Logger) Fatalf(format string, v ...interface{}) {
-	l.logFormat(FATAL, l.callDepth, fmt.Sprintf(format, v...))
-	os.Exit(1)
+	if IsEnabled(FATAL) {
+		l.logFormat(FATAL, l.callDepth, fmt.Sprintf(format, v...))
+		os.Exit(1)
+	}
 }
 
 func (l *Logger) logFormat(lvl LogLevel, callDepth int, msg string) {
@@ -288,16 +312,12 @@ func (l *Logger) logFormat(lvl LogLevel, callDepth int, msg string) {
 	}
 	sb.WriteString(fmt.Sprintf(" [%s:%d]\n", filepath.Base(file), line))
 
-	l.log(lvl, sb.String())
+	l.log(sb.String())
 }
 
-func (l *Logger) log(lvl LogLevel, msg string) {
+func (l *Logger) log(msg string) {
 	if !l.isReady {
 		fmt.Println("[ Logger ] log path is not set.")
-	}
-
-	if !IsEnabled(lvl) {
-		return
 	}
 
 	for _, v := range l.logTargets {
