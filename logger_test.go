@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	logger "github.com/yslim/go-logger"
+	"github.com/yslim/go-logger"
 )
 
 func Test(t *testing.T) {
@@ -17,15 +17,16 @@ func Test(t *testing.T) {
 }
 
 func loggerTest(t *testing.T) {
+	logger.SetLevel(logger.INFO)
 	// logger instance
 	log := logger.NewLogger(false)
-	log.AddTarget(logger.NewConsole(logger.INFO))
-	log.AddTarget(logger.NewLogTargetFileBySize(logger.INFO, 10, 10, "/tmp/message"))
+	log.AddTarget(logger.NewConsole())
+	log.AddTarget(logger.NewLogTargetFileBySize(10, 10, "/tmp/message"))
 
-	assert.Equal(t, log.IsEnabled(logger.TRACE), false, "Log Level")
-	assert.Equal(t, log.IsEnabled(logger.DEBUG), false, "Log Level")
-	assert.Equal(t, log.IsEnabled(logger.INFO), true, "Log Level")
-	assert.Equal(t, log.IsEnabled(logger.ERROR), true, "Log Level")
+	assert.Equal(t, logger.IsEnabled(logger.TRACE), false, "Log Level")
+	assert.Equal(t, logger.IsEnabled(logger.DEBUG), false, "Log Level")
+	assert.Equal(t, logger.IsEnabled(logger.INFO), true, "Log Level")
+	assert.Equal(t, logger.IsEnabled(logger.ERROR), true, "Log Level")
 
 	log.Tracef("[ Test ] trace message = %v", "\"Hello Logger\"")
 	log.Debugf("[ Test ] debug message = %v", "\"Hello Logger\"")

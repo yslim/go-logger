@@ -1,6 +1,5 @@
 // Package logger
 // Created by yslim on 2018. 6. 16.
-//
 package logger
 
 import (
@@ -56,15 +55,23 @@ var (
 		"OFF",
 	}
 
-	singletonInstance *Logger = nil
+	singletonInstance *Logger  = nil
+	globalLogLevel    LogLevel = ALL
 	mutex             sync.Mutex
 )
+
+func IsEnabled(lvl LogLevel) bool {
+	return lvl >= globalLogLevel
+}
+
+func SetLevel(lvl LogLevel) {
+	globalLogLevel = lvl
+}
 
 /*
  * ILogTarget
  */
 type iLogTarget interface {
-	IsEnabled(level LogLevel) bool
 	Append(msg string)
 }
 
@@ -73,52 +80,42 @@ type iLogTarget interface {
  */
 type logTarget struct {
 	sync.Mutex
-	Level LogLevel
 }
 
-func newTarget(lvl LogLevel) *logTarget {
-	return &logTarget{Level: lvl}
-}
-
-func (l *logTarget) IsEnabled(level LogLevel) bool {
-	return level >= l.Level
+func newTarget() *logTarget {
+	return &logTarget{}
 }
 
 func (l *logTarget) Append(msg string) {
+	fmt.Printf("Append() function not implemented!!!\n")
 }
 
-/*
- * logTargetConsole
- */
-type logTargetConsole struct {
+type LogTargetConsole struct {
 	logTarget
 }
 
-func NewConsole(lvl LogLevel) *logTargetConsole {
-	return &logTargetConsole{logTarget{Level: lvl}}
+func NewConsole() *LogTargetConsole {
+	return &LogTargetConsole{logTarget{}}
 }
 
-func (l *logTargetConsole) Append(msg string) {
+func (l *LogTargetConsole) Append(msg string) {
 	l.Lock()
 	defer l.Unlock()
 	fmt.Print(msg)
 }
 
-/*
- * logTargetFileBySize
- */
-type logTargetFileBySize struct {
+type LogTargetFileBySize struct {
 	logTarget
 	limitSize int64
 	numFiles  int
 	logPath   string
 }
 
-func NewLogTargetFileBySize(lvl LogLevel, limitSize int64, numFiles int, logPath string) *logTargetFileBySize {
-	return &logTargetFileBySize{logTarget{Level: lvl}, limitSize, numFiles, logPath}
+func NewLogTargetFileBySize(limitSize int64, numFiles int, logPath string) *LogTargetFileBySize {
+	return &LogTargetFileBySize{logTarget{}, limitSize, numFiles, logPath}
 }
 
-func (l *logTargetFileBySize) Append(msg string) {
+func (l *LogTargetFileBySize) Append(msg string) {
 	l.Lock()
 	defer l.Unlock()
 
@@ -136,26 +133,23 @@ func (l *logTargetFileBySize) Append(msg string) {
 	_ = f.Close()
 }
 
-func (l *logTargetFileBySize) RotateLogFiles() {
+func (l *LogTargetFileBySize) RotateLogFiles() {
 	for i := l.numFiles - 2; i > 0; i-- {
 		_ = os.Rename(fmt.Sprint(l.logPath, ".", i), fmt.Sprint(l.logPath, ".", i+1))
 	}
 	_ = os.Rename(l.logPath, fmt.Sprint(l.logPath, ".", 1))
 }
 
-/*
- * logTargetFileDaily
- */
-type logTargetFileDaily struct {
+type LogTargetFileDaily struct {
 	logTarget
 	logPath string
 }
 
-func NewLogTargetFileDaily(lvl LogLevel, logPath string) *logTargetFileDaily {
-	return &logTargetFileDaily{logTarget{Level: lvl}, logPath}
+func NewLogTargetFileDaily(logPath string) *LogTargetFileDaily {
+	return &LogTargetFileDaily{logTarget{}, logPath}
 }
 
-func (l *logTargetFileDaily) Append(msg string) {
+func (l *LogTargetFileDaily) Append(msg string) {
 	l.Lock()
 	defer l.Unlock()
 
@@ -177,7 +171,7 @@ func (l *logTargetFileDaily) Append(msg string) {
 		_ = os.Remove(logPath)
 	}
 
-	// although Open/Close for each log decreases performance but
+	// although Open/Close for each log decreases performance, but
 	// I want to save to disk when append is performed
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
@@ -203,13 +197,6 @@ func NewLogger(useColoredLogLevelName bool) *Logger {
 func (l *Logger) AddTarget(target iLogTarget) {
 	l.logTargets = append(l.logTargets, target)
 	l.isReady = true
-}
-
-func (l *Logger) IsEnabled(lvl LogLevel) bool {
-	if len(l.logTargets) <= 0 {
-		return false
-	}
-	return l.logTargets[0].IsEnabled(lvl)
 }
 
 func (l *Logger) SetCallDepth(callDepth int) {
@@ -309,10 +296,12 @@ func (l *Logger) log(lvl LogLevel, msg string) {
 		fmt.Println("[ Logger ] log path is not set.")
 	}
 
+	if !IsEnabled(lvl) {
+		return
+	}
+
 	for _, v := range l.logTargets {
-		if v.IsEnabled(lvl) {
-			v.Append(msg)
-		}
+		v.Append(msg)
 	}
 }
 
@@ -345,14 +334,17 @@ func InitLogger(lvl LogLevel, limitSize int64, numFiles int, logPath string,
 
 	singletonInstance = NewLogger(useColoredLogLevelName)
 
+	// set log level
+	SetLevel(lvl)
+
 	// add Console
-	singletonInstance.AddTarget(NewConsole(lvl))
+	singletonInstance.AddTarget(NewConsole())
 
 	// add FileLog
 	if rollType == RollDaily {
-		singletonInstance.AddTarget(NewLogTargetFileDaily(lvl, logPath))
+		singletonInstance.AddTarget(NewLogTargetFileDaily(logPath))
 	} else {
-		singletonInstance.AddTarget(NewLogTargetFileBySize(lvl, limitSize, numFiles, logPath))
+		singletonInstance.AddTarget(NewLogTargetFileBySize(limitSize, numFiles, logPath))
 	}
 
 	singletonInstance.isReady = true
